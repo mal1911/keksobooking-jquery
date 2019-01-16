@@ -1,17 +1,32 @@
 'use strict';
 (function () {
 
-  var addChildElements = function (arrArg, parentElement, template, getElement, countArg) {
-    var fragment = document.createDocumentFragment();
+
+  var getElementFromTemplate = function (templateId, templateClassName) {
+    var templateElem = $($(templateId).html());
+    if(templateClassName !== undefined) {
+      templateElem = templateElem.find(templateClassName).first();
+//    console.log(templateElem);
+    }
+    return templateElem;
+  };
+
+
+  var addChildElements = function (arrArg, parentElement, getElement, countArg) {
+    //var fragment = document.createDocumentFragment();
+    var fragment = $(document.createDocumentFragment());
     var count = (countArg && countArg < arrArg.length) ? countArg : arrArg.length;
     for (var i = 0; i < count; i++) {
-      var element = getElement(arrArg[i], template);
+      var element = getElement(arrArg[i]);
       if (element) {
-        fragment.appendChild(element);
+        //fragment.appendChild(element);
+        fragment.append(element);
       }
     }
-    parentElement.appendChild(fragment);
+    //parentElement.appendChild(fragment);
+    parentElement.append(fragment);
   };
+
 
   var removeChildElements = function (element) {
     if (element) {
@@ -42,6 +57,7 @@
     addChildElements: addChildElements,
     removeChildElements: removeChildElements,
     removeElements: removeElements,
-    getIndexElement: getIndexElement
+    getIndexElement: getIndexElement,
+    getElementFromTemplate: getElementFromTemplate
   };
 })();

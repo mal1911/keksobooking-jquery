@@ -1,16 +1,16 @@
 'use strict';
 (function () {
-  var mapElement = document.querySelector('.map');
+  var mapElement = $('.map');
 
   var enable = function () {
-    if (mapElement.classList.contains('map--faded')) {
-      mapElement.classList.remove('map--faded');
+    if (mapElement.hasClass('map--faded')) {
+      mapElement.removeClass('map--faded');
     }
   };
 
   var disable = function () {
-    if (!mapElement.classList.contains('map--faded')) {
-      mapElement.classList.add('map--faded');
+    if (!mapElement.hasClass('map--faded')) {
+      mapElement.addClass('map--faded');
     }
   };
 
@@ -18,13 +18,13 @@
     window.card.open(pin);
   };
 
-  mapElement.addEventListener('click', function (evt) {
+  mapElement.bind('click', function (evt) {
     window.pins.activatePin(evt.target, onActivatePin);
   });
 
-  mapElement.addEventListener('keydown', function (evt) {
+  mapElement.bind('keydown', function (evt) {
     if (evt.keyCode === window.keyUtil.ENTER_KEYCODE) {
-      window.pins.activatePin(evt.target, onActivatePin);
+      window.pins.activatePin($(evt.target), onActivatePin);
     }
   });
 

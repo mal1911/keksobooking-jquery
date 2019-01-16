@@ -7,6 +7,9 @@
   };
 
   var mainPinElement = $('.map__pin--main');
+  var defaultPosition;
+  var currentPosition;
+  var onNewActivateMainPin;
 
   var getCoordinatsFromPosition = function (position) {
     return {
@@ -16,41 +19,78 @@
   };
 
   var getDefaultCoordinats = function () {
-    return {x: 100, y: 50};
-    //return getCoordinatsFromPosition(window.dragEndDrop.getDefaultPosition());
+    return getCoordinatsFromPosition(defaultPosition);
   };
 
-  var getMainPinValidPosition = function () {
-    var parentElement = $('.map__pins').first();
-    console.log(parentElement.top);
-    console.log(parentElement.left);
-    return [window.pinsArea.minX + parentElement.left,
-      window.pinsArea.minY - (MainPin.HEIGHT + MainPin.POINTER_HEIGHT) + parentElement.top,
-      window.pinsArea.maxX - MainPin.WIDTH + parentElement.left,
-      window.pinsArea.maxY - (MainPin.HEIGHT + MainPin.POINTER_HEIGHT)] + parentElement.top;
-  };
-
-  var initialize = function (onActivateMainPin) {
-    var stopDragginElement = function (evt, ui) {
-      //onActivateMainPin(getCoordinatsFromPosition(position));
-      console.log(ui.offset.top + ' ' + ui.offset.left);
+  var getElementPosition = function () {
+    return {
+      x: Math.floor(parseInt(mainPinElement.css('left'), 10)),
+      y: Math.floor(parseInt(mainPinElement.css('top'), 10))
     };
+  };
 
-    console.log(getMainPinValidPosition());
-
-    mainPinElement.draggable({
-      cancel: false,
-      containment: [0,0, 1000, 500],//getMainPinValidPosition(),
-      stop: stopDragginElement
-    });
-
-    //  window.dragEndDrop.initialize(mainPinElement, mainPinValidPosition, activateElementHandler);
-
-
+  var setElementPosition = function (position) {
+    mainPinElement.css('left', position.x + 'px');
+    mainPinElement.css('top', position.y + 'px');
   };
 
   var setDefaults = function () {
-    //window.dragEndDrop.setDefaults();
+    setElementPosition(defaultPosition);
+  };
+
+
+  var isValidPosition = function (position) {
+    var mainPinValidPosition = {
+      minX: window.pinsArea.minX,
+      maxX: window.pinsArea.maxX - MainPin.WIDTH,
+      minY: window.pinsArea.minY - (MainPin.HEIGHT + MainPin.POINTER_HEIGHT),
+      maxY: window.pinsArea.maxY - (MainPin.HEIGHT + MainPin.POINTER_HEIGHT)
+    };
+    return (position.x >= mainPinValidPosition.minX && position.x <= mainPinValidPosition.maxX
+      && position.y >= mainPinValidPosition.minY && position.y <= mainPinValidPosition.maxY);
+  };
+
+  mainPinElement.bind('mousedown', function (evt) {
+    evt.preventDefault();
+
+    var startPosition = {
+      x: evt.clientX,
+      y: evt.clientY,
+    };
+
+    $(document).bind('mousemove', function (moveEvt) {
+      evt.preventDefault();
+
+      var shift = {
+        x: startPosition.x - moveEvt.clientX,
+        y: startPosition.y - moveEvt.clientY,
+      };
+      startPosition = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY,
+      };
+
+      var tempPosition = {
+        x: mainPinElement[0].offsetLeft - shift.x,
+        y: mainPinElement[0].offsetTop - shift.y
+      };
+      if (isValidPosition(tempPosition)) {
+        currentPosition = tempPosition;
+        setElementPosition(currentPosition);
+      }
+    });
+
+    $(document).bind('mouseup', function () {
+      $(document).unbind('mousemove');
+      $(document).unbind('mouseup');
+      onNewActivateMainPin(getCoordinatsFromPosition(currentPosition));
+    });
+
+  });
+
+  var initialize = function (onActivateMainPin) {
+    onNewActivateMainPin = onActivateMainPin;
+    defaultPosition = getElementPosition();
   };
 
   window.mainPin = {

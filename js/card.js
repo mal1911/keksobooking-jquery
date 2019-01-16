@@ -1,6 +1,6 @@
 'use strict';
 (function () {
-  var mapElement = document.querySelector('.map');
+  var mapElement = $('.map');
 
   var onEscPress = function (evt) {
     if (evt.keyCode === window.keyUtil.ESC_KEYCODE) {
@@ -8,18 +8,36 @@
     }
   };
 
-  var getPhotoElement = function (photo, template) {
+  /*var getPhotoElement = function (photo, template) {
     var photoElement = template.cloneNode(true);
     photoElement.src = photo;
     return photoElement;
+  };*/
+
+  var getPhotoElement = function (photo) {
+    var photoElement = window.domUtil.getElementFromTemplate('#card', '.popup__photo');
+    photoElement.attr('src', photo);
+    return photoElement;
   };
 
+  var getFeatureElement = function (feature) {
+    var featureElement = window.domUtil.getElementFromTemplate('#card', '.popup__feature');
+    if (feature !== 'wifi') {
+      featureElement.removeClass('popup__feature--wifi');
+      featureElement.addClass('popup__feature--' + feature);
+    }
+    return featureElement;
+  };
+
+/*
   var getFeatureElement = function (feature, template) {
     var featureElement = template.cloneNode(true);
     featureElement.classList.add('popup__feature--' + feature);
     return featureElement;
   };
+*/
 
+/*
   var getCardElement = function (pin, template) {
     var cardElement = template.cloneNode(true);
     if (pin.offer.title) {
@@ -80,22 +98,59 @@
     return cardElement;
   };
 
+*/
+
+  var getCardElement = function (pin) {
+    var cardElement = window.domUtil.getElementFromTemplate('#card');
+
+    cardElement.children('.popup__title').text(pin.offer.title);
+    cardElement.children('.popup__text--address').text(pin.offer.address);
+    cardElement.children('.popup__text--price').text(pin.offer.price + '₽/ночь');
+
+    var carType = cardElement.children('.popup__type');
+    switch (pin.offer.type) {
+      case 'flat':
+        carType.text('Квартира');
+        break;
+      case 'bungalo':
+        carType.text('Бунгало');
+        break;
+      case 'house':
+        carType.text('Дом');
+        break;
+      case 'palace':
+        carType.text('Дворец');
+        break;
+    }
+    cardElement.children('.popup__text--capacity').text(pin.offer.rooms + ' комнаты для ' + pin.offer.guests + ' гостей');
+    cardElement.children('.popup__text--time').text('Заезд после ' + pin.offer.checkin + ',  выезд до ' + pin.offer.checkout);
+
+    var featureListElement = cardElement.find('.popup__features').first();
+    window.domUtil.removeChildElements(featureListElement);
+    window.domUtil.addChildElements(pin.offer.features, featureListElement, getFeatureElement);
+
+    cardElement.children('.popup__description').text(pin.offer.description);
+
+    var photoListElement = cardElement.find('.popup__photos').first();
+    window.domUtil.removeChildElements(photoListElement);
+    window.domUtil.addChildElements(pin.offer.photos, photoListElement, getPhotoElement);
+
+    return cardElement;
+  };
+
   var close = function () {
-    var deletedElement = mapElement.querySelector('.map__card');
-    if (deletedElement) {
-      document.removeEventListener('keydown', onEscPress);
+    var deletedElement = $('.map__card');
+    if (deletedElement.length) {
+      $(document).unbind('keydown', onEscPress);
       deletedElement.remove();
     }
   };
 
   var open = function (pin) {
     close();
-    var mapFiltersElement = mapElement.querySelector('.map__filters-container');
-    var cardTemplate = document.querySelector('#card').content.querySelector('.map__card');
-    var cardElement = getCardElement(pin, cardTemplate);
-    mapElement.insertBefore(cardElement, mapFiltersElement);
-    document.addEventListener('keydown', onEscPress);
-    cardElement.querySelector('.popup__close').addEventListener('click', close);
+    $('.map__filters-container').before(getCardElement(pin));
+    $(document).bind('keydown', onEscPress);
+    $('.popup__close').bind('click', close);
   };
 
   window.card = {

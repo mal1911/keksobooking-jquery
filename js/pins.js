@@ -13,30 +13,47 @@
 
   var pins;
   var filter;
-  var mapElement = document.querySelector('.map');
+  var mapElement = $('.map');
 
-  var getPositionFromPinCoordinats = function (coordinats) {
+  var getPositionFromCoordinats = function (coordinats) {
     return {x: coordinats.x - Pin.WIDTH / 2, y: coordinats.y - Pin.HEIGHT};
   };
 
   var isShow = function () {
-    return mapElement.querySelector('.map__pin:not(.map__pin--main)');
+    //console.log($('.map__pin:not(.map__pin--main)'));
+    //return mapElement.querySelector('.map__pin:not(.map__pin--main)');
+    return $('.map__pin:not(.map__pin--main)').length;
   };
 
-  var getPinElement = function (pin, template) {
+  /*  var getPinElement = function (pin, template) {
+      if (pin.offer) {
+        var pinElement = template.cloneNode(true);
+        var location = getPositionFromPinCoordinats(pin.location);
+        pinElement.style.left = location.x + 'px';
+        pinElement.style.top = location.y + 'px';
+        pinElement.querySelector('img').src = pin.author.avatar;
+        pinElement.querySelector('img').alt = pin.offer.title;
+        pinElement.tabIndex = '0';
+        return pinElement;
+      } else {
+        return false;
+      }
+    };
+  */
+  var getPinElement = function (pin) {
     if (pin.offer) {
-      var pinElement = template.cloneNode(true);
-      var location = getPositionFromPinCoordinats(pin.location);
-      pinElement.style.left = location.x + 'px';
-      pinElement.style.top = location.y + 'px';
-      pinElement.querySelector('img').src = pin.author.avatar;
-      pinElement.querySelector('img').alt = pin.offer.title;
-      pinElement.tabIndex = '0';
+      var pinElement = window.domUtil.getElementFromTemplate('#pin');
+      var location = getPositionFromCoordinats(pin.location);
+      pinElement.css('left', location.x + 'px');
+      pinElement.css('top', location.y + 'px');
+      pinElement.children('img').attr('src', pin.author.avatar);
+      pinElement.children('img').attr('alt', pin.offer.title);
       return pinElement;
     } else {
       return false;
     }
   };
+
 
   var setFilter = function (arrArg) {
     if (filter) {
@@ -84,9 +101,10 @@
   var show = function () {
     var successHandler = function (arrArg) {
       pins = setFilter(arrArg);
-      var pinListElement = mapElement.querySelector('.map__pins');
-      var pinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
-      window.domUtil.addChildElements(pins, pinListElement, pinTemplate, getPinElement, Pin.COUNT);
+      //var pinListElement = mapElement.querySelector('.map__pins');
+      //var pinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
+      //addChildElements(pins, $('.map__pins'), getPinElement);
+      window.domUtil.addChildElements(pins, $('.map__pins'), getPinElement, Pin.COUNT);
     };
 
     var errorHandler = function (errorMessage) {
@@ -103,24 +121,31 @@
   };
 
   var hide = function () {
-    var elements = mapElement.querySelectorAll('.map__pin:not(.map__pin--main)');
+    var elements = $('.map__pin:not(.map__pin--main)');
     window.domUtil.removeElements(elements);
   };
 
   var setActivePin = function (element) {
-    var oldActiveElememt = mapElement.querySelector('.map__pin--active');
-    if (oldActiveElememt) {
-      oldActiveElememt.classList.remove('map__pin--active');
+    var oldActiveElememt = $('.map__pin--active');
+    if (oldActiveElememt.length) {
+      oldActiveElememt.removeClass('map__pin--active');
     }
-    element.classList.add('map__pin--active');
+    element.addClass('map__pin--active');
   };
 
   var activatePin = function (element, onActivatePin) {
-    element = element.closest('.map__pin:not(.map__pin--main)');
-    var pinElements = mapElement.querySelectorAll('.map__pin:not(.map__pin--main)');
+    //element = element.closest('.map__pin:not(.map__pin--main)');
+    element = $(element).closest('.map__pin:not(.map__pin--main)');
+    var pinElements = $('.map__pin:not(.map__pin--main)');
     if (element) {
       setActivePin(element);
-      onActivatePin(pins[window.domUtil.getIndexElement(element, pinElements)]);
+      //console.log(element);
+      //console.log(pinElements);
+      //console.log(window.domUtil.getIndexElement(element[0], pinElements));
+      var index = window.domUtil.getIndexElement(element[0], pinElements);
+      if (index > -1) {
+        onActivatePin(pins[index]);
+      }
     }
   };
 
